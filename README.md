@@ -97,4 +97,4 @@ print(response.json())
 
 ## 致谢
 
-本项目基于 OpenDataLab/MinerU 开发，感谢其核心技术的贡献。
+本项目基于[OpenDataLab/MinerU](https://github.com/opendatalab/MinerU)开发，感谢其核心技术的贡献。

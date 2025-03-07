@@ -34,7 +34,7 @@ python serve.py
 
 访问交互式文档：`http://127.0.0.1:8000/docs`
 
-![image-20250307161352665](C:/Users/yao17/AppData/Roaming/Typora/typora-user-images/image-20250307161352665.png)
+![image-20250307161352665](pic/image-20250307161352665.png)
 
 ## API示例
 

@@ -110,5 +110,5 @@ class MinerUAPI(ls.LitAPI):
 
 
 if __name__ == '__main__':
-    server = ls.LitServer(MinerUAPI(), accelerator='gpu', devices=[0], timeout=False)
+    server = ls.LitServer(MinerUAPI(), accelerator='gpu', devices=[0,1], timeout=False)
     server.run(port=8000)

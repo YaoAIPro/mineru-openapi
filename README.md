@@ -4,10 +4,12 @@
 
 ## 特性
 
-- **多格式支持**：PDF、PPT、PPTX、DOC、DOCX
+- **多格式支持**：PDF、PPT、PPTX、DOC、DOCX、PNG、JPG
 - **高性能解析**：模型预加载，减少初始化时间
 - **批量处理**：支持多文件批量上传与解析
 - **结构化输出**：返回解析后的文本、图片、布局等结构化数据
+- **分批加载 + 线程池加速**：控制内存占用，防止 OOM，提高并发处理能力
+- **支持多GPU部署**：可在多张 GPU 上运行，提高处理能力
 
 ## 快速开始
 
@@ -32,69 +34,43 @@ pip install -r requirements.txt
 python serve.py
 ```
 
-访问交互式文档：`http://127.0.0.1:8000/docs`
-
-![image-20250307161352665](pic/image-20250307161352665.png)
-
 ## API示例
 
 ### Python 示例
 
 ```python
+import json
 import requests
-
-url = "http://127.0.0.1:8000/mineru/parsing"
-
-files = [
-    ('files', ('file1.pdf', open('file1.pdf', 'rb'), 'application/pdf')),
-    ('files', ('file2.docx', open('file2.docx', 'rb'), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')),
-    ('files', ('file3.pptx', open('file3.pptx', 'rb'), 'application/vnd.openxmlformats-officedocument.presentationml.presentation'))
-]
+import numpy as np
+from loguru import logger
+from joblib import Parallel, delayed
 
 
-response = requests.post(url, files=files)
+def do_parse(file_path, url='http://127.0.0.1:8000/predict', **kwargs):
+    try:
+        kwargs.setdefault('parse_method', 'auto')
+        kwargs.setdefault('debug_able', False)
+        print(file_path)
+        response = requests.post(url,
+            data={'kwargs': json.dumps(kwargs), "file_path": file_path}
+        )
 
-print(response.json())  
+        if response.status_code == 200:
+            output = response.json()
+            output['file_path'] = file_path
+            return output
+        else:
+            raise Exception(response.text)
+    except Exception as e:
+        logger.error(f'File: {file_path} - Info: {e}')
+
+
+if __name__ == '__main__':
+    files = ['file.pdf', 'file2.doc']
+    n_jobs = np.clip(len(files), 1, 4)
+    results = Parallel(n_jobs, prefer='threads', verbose=10)(
+        delayed(do_parse)(p) for p in files
+    )
+    print(results)
 ```
 
-### 返回结果示例
-
-```json
-{
-  "message": "success",
-  "data": {
-    "file1.pdf": {
-      "files": [
-        "file1_model.pdf",
-        "file1_layout.pdf",
-        "file1_spans.pdf",
-        "file1.md",
-        "file1_content_list.json",
-        "file1_middle.json"
-      ],
-      "images": [
-        "b4711891fad4eb33f0a715e1d86e58e871c368c23afb403e25f1cd9b81b178a9.jpg"
-      ]
-    },
-    "...": 
-  },
-  "fails": []
-}
-```
-
-## API 详细说明
-
-### 1. 文件解析接口
-
-- **URL**: `/mineru/parsing`
-- **Method**: `POST`
-- **Content-Type**: `multipart/form-data`
-- 参数:`files`: 需要解析的文件列表（支持多文件上传）
-- 返回结果:
-  - `message`: 请求状态（`success`）
-  - `data`: 解析后的文件数据，包含文本、图片、布局等信息
-  - `fails`: 解析失败的文件列表
-
-## 致谢
-
-本项目基于 OpenDataLab/MinerU 开发，感谢其核心技术的贡献。

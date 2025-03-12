@@ -1,6 +1,6 @@
 # MinerU-OpenAPI
 
-**基于[MinerU](https://github.com/opendatalab/MinerU)二次开发的多格式文档解析API服务**，使用 FastAPI 实现 PDF、PPT、PPTX、DOC、DOCX 等格式的高效解析与结构化输出。
+**基于[MinerU](https://github.com/opendatalab/MinerU)二次开发的多格式文档解析API服务**，使用 litserve 实现 PDF、PPT、PPTX、DOC、DOCX 等格式的高效解析与结构化输出。
 
 ## 特性
 
